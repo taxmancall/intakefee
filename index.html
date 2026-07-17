@@ -114,7 +114,7 @@ footer{margin-top:28px;font-size:.72rem;color:var(--muted);text-align:center;lin
   <div class="field">
     <label>직전연도 수입금액 <em>원 단위</em></label>
     <input type="text" id="inRevenue" inputmode="numeric" placeholder="예: 120,000,000">
-    <div class="hint">매출과 자산총액 중 큰 금액. 신규사업자는 당해 예상 수입.</div>
+    <div class="hint">매출과 자산총액 중 큰 금액. 신규 개업은 미입력 가능 (예상 매출 있으면 입력).</div>
   </div>
 
   <div class="field">
@@ -209,16 +209,14 @@ const CFG = {
 
   // 기장료 기본표 (월, VAT별도) — [상한액, 요금] / 2024표 + 50,000 인상
   gijangIndividual: [
-    [3e8,150000],[5e8,170000],[10e8,180000],[15e8,220000],[20e8,250000],
-    [25e8,300000],[30e8,325000],[35e8,350000],[40e8,375000],[45e8,400000],
-    [50e8,425000],[60e8,450000],[70e8,500000],[80e8,550000],[90e8,600000],
-    [100e8,650000],[200e8,950000]
+    [0.5e8,90000],[1e8,130000],[3e8,150000],[5e8,200000],[10e8,250000],[15e8,300000],[20e8,350000],
+    [30e8,400000],[40e8,450000],[50e8,500000],[60e8,550000],[70e8,600000],
+    [80e8,650000],[90e8,700000],[100e8,750000],[200e8,1000000]
   ],
   gijangCorp: [
-    [3e8,200000],[5e8,230000],[10e8,250000],[15e8,300000],[20e8,350000],
-    [25e8,400000],[30e8,425000],[35e8,450000],[40e8,475000],[45e8,500000],
-    [50e8,525000],[60e8,550000],[70e8,600000],[80e8,650000],[90e8,700000],
-    [100e8,750000],[200e8,1050000]
+    [0.5e8,150000],[1e8,180000],[3e8,200000],[5e8,250000],[10e8,300000],[15e8,350000],[20e8,400000],
+    [30e8,450000],[40e8,500000],[50e8,550000],[60e8,600000],[70e8,650000],
+    [80e8,700000],[90e8,750000],[100e8,800000],[200e8,1100000]
   ],
   // 인원 가산: 환산인원 = 4대×1.0 + 3.3%×0.3 + 일용×0.25
   headWeights: { w4:1.0, w33:0.3, wday:0.25 },
@@ -294,6 +292,8 @@ function judge(d){
     return { cls:'v-must', type:'GIJANG', main:'기장 필수 — 복식부기의무자', law:`직전연도 수입 ${fmt(d.revenue)}원 ≥ 복식부기 기준 ${fmt(CFG.bokLimit[g])}원 (소득세법 §160·시행령 §208). 추계신고 시 무기장가산세 20% + 기준경비율 적용으로 신고대리가 오히려 불리합니다.` };
   if (d.w4 >= 1)
     return { cls:'v-rule', type:'GIJANG', main:'기장 원칙 — 4대보험 직원 보유', law:'급여대장·원천세·간이지급명세서·4대보험 신고가 매월 발생하므로 기장 계약이 원칙입니다.' };
+  if (d.isNew && !d.revenue)
+    return { cls:'v-free', type:'BOTH', main:'신규 개업 — 신고대리·기장 선택 가능', law:'당해연도 신규 개업자는 간편장부대상자(소득세법 §160)이며 무기장가산세 제외 소규모사업자입니다. 아래 견적은 최저 구간 기준이며, 첫 종소세 신고 후 실제 수입금액으로 재산정됩니다. 단, 의료·법무 등 전문직은 신규여도 복식부기의무자입니다.' };
   if (d.revenue >= CFG.gijunRate[g])
     return { cls:'v-reco', type:'BOTH', main:'신고대리 가능 · 기장 권장', law:`수입 ${fmt(d.revenue)}원 ≥ 기준경비율 기준 ${fmt(CFG.gijunRate[g])}원 (시행령 §143). 추계 시 세부담이 커 장부작성이 유리한 구간입니다. 2년 연속 해당 시 기장 전환을 안내합니다.` };
   return { cls:'v-free', type:'SINGO', main:'신고대리 적합', law: d.revenue < CFG.smallBiz
@@ -386,7 +386,7 @@ $('btnCalc').addEventListener('click', () => {
     labor: $('ckLabor').checked, rentS: $('ckRentS').checked, rentC: $('ckRentC').checked,
     fin: $('ckFin').checked, late: $('ckLate').checked
   };
-  if (!d.revenue){ alert('수입금액을 입력해 주세요.'); return; }
+  if (!d.revenue && !d.isNew){ alert('수입금액을 입력해 주세요.\n(당해연도 신규 개업이면 "신규 개업"에 체크하면 미입력으로 진행됩니다.)'); return; }
 
   const v = judge(d);
   const vb = $('verdict');
@@ -399,7 +399,8 @@ $('btnCalc').addEventListener('click', () => {
   const sg = calcSingo(d, v.type);
 
   // 기장료 표
-  let h = `<tr><td>기본 기장료 <span class="tag">수입 ${fmt(d.revenue)}원 구간</span></td><td>${won(gj.base)}</td></tr>`;
+  const revLabel = (!d.revenue && d.isNew) ? '신규 개업 · 최저 구간' : `수입 ${fmt(d.revenue)}원 구간`;
+  let h = `<tr><td>기본 기장료 <span class="tag">${revLabel}</span></td><td>${won(gj.base)}</td></tr>`;
   h += `<tr><td>인원 가산 <span class="tag">환산 ${gj.eq.toFixed(2)}명</span></td><td>${gj.headOver?won(gj.headFee)+' (별도협의)':won(gj.headFee)}</td></tr>`;
   h += `<tr class="sub"><td colspan="2">└ 4대 ${d.w4}명×1.0 + 3.3% ${d.w33}명×0.3 + 일용 ${d.wday}명×0.25</td></tr>`;
   if (gj.mult>1) h += `<tr><td>업종 가산</td><td>× ${gj.mult}</td></tr>`;
@@ -455,7 +456,7 @@ $('btnCalc').addEventListener('click', () => {
   lastSummary =
 `[원제우세무사 사무소 견적 안내] ${today}
 ■ 판정: ${v.main}
-■ 수입금액: ${fmt(d.revenue)}원 (${d.entity})
+■ 수입금액: ${(!d.revenue && d.isNew) ? '신규 개업 (매출 미정)' : fmt(d.revenue)+'원'} (${d.entity})
 ■ 월 기장료: ${won(gj.monthly)} (VAT 별도) / 포함 ${won(gj.vatIncl)}
   - 기본 ${won(gj.base)} + 인원가산 ${won(gj.headFee)} (환산 ${gj.eq.toFixed(2)}명)${gj.mult>1?` × 업종가산 ${gj.mult}`:''}
 ■ 조정료(연1회): ${won(jj.final)} (VAT 별도)
