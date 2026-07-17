@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수임 견적 산출 · 원제우세무사 사무소</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --ink:#16233A; --brand:#1E4E9C; --brand-deep:#143567; --wash:#EEF3FA;
+  --line:#D8E0EC; --paper:#FFFFFF; --muted:#6B7A93; --gold:#8A6A1F;
+  --ok:#1A7A5E; --warn:#B4541E; --danger:#B02E2E;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',-apple-system,'Malgun Gothic',sans-serif;background:var(--wash);color:var(--ink);line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:1060px;margin:0 auto;padding:20px 14px 64px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:3px solid var(--brand-deep);padding-bottom:12px;margin-bottom:18px}
+header h1{font-size:1.28rem;font-weight:800;letter-spacing:-.02em;color:var(--brand-deep)}
+header h1 small{display:block;font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-top:2px}
+header .office{font-size:.82rem;font-weight:700;color:var(--brand)}
+.grid{display:grid;grid-template-columns:400px 1fr;gap:18px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px}
+.card h2{font-size:.95rem;font-weight:800;color:var(--brand-deep);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h2::before{content:"";width:5px;height:16px;background:var(--brand);border-radius:2px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:.8rem;font-weight:700;color:var(--ink);margin-bottom:5px}
+.field label em{font-style:normal;color:var(--muted);font-weight:500;font-size:.74rem;margin-left:4px}
+.field input,.field select{width:100%;padding:9px 11px;font-size:.92rem;font-family:inherit;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.field input:focus,.field select:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:var(--brand)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;padding:9px 4px;font-size:.86rem;font-weight:700;font-family:inherit;background:#fff;color:var(--muted);border:none;cursor:pointer;transition:background .15s}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--brand);color:#fff}
+.checks{display:flex;flex-direction:column;gap:7px}
+.checks label{display:flex;align-items:center;gap:8px;font-size:.83rem;font-weight:600;cursor:pointer}
+.checks input{width:16px;height:16px;accent-color:var(--brand)}
+.hint{font-size:.73rem;color:var(--muted);margin-top:4px}
+.calcbtn{width:100%;margin-top:6px;padding:13px;font-size:1rem;font-weight:800;font-family:inherit;color:#fff;background:var(--brand-deep);border:none;border-radius:10px;cursor:pointer;letter-spacing:.02em}
+.calcbtn:hover{background:var(--brand)}
+/* 판정 배너 */
+.verdict{border-radius:12px;padding:16px 18px;margin-bottom:16px;color:#fff;display:none}
+.verdict.show{display:block}
+.verdict .vtype{font-size:.72rem;font-weight:700;letter-spacing:.14em;opacity:.85}
+.verdict .vmain{font-size:1.3rem;font-weight:800;margin:2px 0 6px}
+.verdict .vlaw{font-size:.78rem;opacity:.92;line-height:1.5}
+.verdict.v-must{background:linear-gradient(135deg,var(--brand-deep),var(--brand))}
+.verdict.v-rule{background:linear-gradient(135deg,#1F5F8F,#2E7DA6)}
+.verdict.v-reco{background:linear-gradient(135deg,#4A6741,#5E8253)}
+.verdict.v-free{background:linear-gradient(135deg,#5C5470,#7A6F94)}
+.rescard{display:none}
+.rescard.show{display:block}
+table.fee{width:100%;border-collapse:collapse;font-size:.86rem;margin:6px 0 2px}
+table.fee td{padding:7px 4px;border-bottom:1px solid var(--wash)}
+table.fee td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+table.fee tr.sum td{border-top:2px solid var(--brand-deep);border-bottom:none;font-weight:800;font-size:.95rem;color:var(--brand-deep);padding-top:9px}
+table.fee tr.sub td{color:var(--muted);font-size:.79rem;font-weight:500}
+table.fee td .tag{display:inline-block;font-size:.68rem;font-weight:700;color:var(--brand);background:var(--wash);border-radius:4px;padding:1px 6px;margin-left:5px;vertical-align:1px}
+.note{font-size:.74rem;color:var(--muted);margin-top:8px;line-height:1.6}
+.note b{color:var(--warn)}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+@media(max-width:520px){.compare{grid-template-columns:1fr}}
+.cbox{border:1.5px solid var(--line);border-radius:10px;padding:13px 14px}
+.cbox.pick{border-color:var(--brand);background:var(--wash)}
+.cbox .ct{font-size:.78rem;font-weight:800;color:var(--muted);letter-spacing:.05em}
+.cbox .cv{font-size:1.25rem;font-weight:800;color:var(--brand-deep);margin-top:3px;font-variant-numeric:tabular-nums}
+.cbox .cd{font-size:.74rem;color:var(--muted);margin-top:3px;line-height:1.5}
+.copybtn{margin-top:14px;width:100%;padding:11px;font-size:.9rem;font-weight:700;font-family:inherit;color:var(--brand-deep);background:#fff;border:1.5px solid var(--brand);border-radius:9px;cursor:pointer}
+.copybtn:hover{background:var(--wash)}
+.stack>.card+.card{margin-top:16px}
+footer{margin-top:28px;font-size:.72rem;color:var(--muted);text-align:center;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>수임 견적 산출 도구<small>최초 상담용 · 기장료 / 신고대리 통합 (2026 보수표)</small></h1>
+  <div class="office">원제우세무사 사무소 · 032-321-4521</div>
+</header>
+
+<div class="grid">
+<!-- ══════════ 입력 ══════════ -->
+<div class="card" id="formcard">
+  <h2>상담 정보 입력</h2>
+
+  <div class="field">
+    <label>사업자 유형</label>
+    <div class="seg" id="segEntity">
+      <button type="button" data-v="개인" class="on">개인</button>
+      <button type="button" data-v="법인">법인</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>업종군 <em>기장의무 판정 기준 (소득세법 시행령 §208)</em></label>
+    <select id="inGroup">
+      <option value="ga">가군 — 도·소매, 농림어업, 부동산매매 등 (복식부기 3억)</option>
+      <option value="na">나군 — 제조, 음식·숙박, 건설, 운수, 정보통신 등 (1.5억)</option>
+      <option value="da" selected>다군 — 서비스, 임대, 보건, 교육, 프리랜서 등 (7,500만)</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>업종 가산 구분</label>
+    <select id="inIndustry">
+      <option value="none">일반 (가산 없음)</option>
+      <option value="mfg">제조·건설 등 원가계산 필요 (+20%)</option>
+      <option value="med">병의원·임대·대리중개 등 (+50%)</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>직전연도 수입금액 <em>원 단위</em></label>
+    <input type="text" id="inRevenue" inputmode="numeric" placeholder="예: 120,000,000">
+    <div class="hint">매출과 자산총액 중 큰 금액. 신규사업자는 당해 예상 수입.</div>
+  </div>
+
+  <div class="field">
+    <label>인원 현황 <em>기장료 인원가산 산정</em></label>
+    <div class="row3">
+      <div><input type="number" id="inW4" min="0" value="0"><div class="hint">4대보험</div></div>
+      <div><input type="number" id="inW33" min="0" value="0"><div class="hint">3.3% 인원</div></div>
+      <div><input type="number" id="inWday" min="0" value="0"><div class="hint">일용직</div></div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>부가세 과세유형</label>
+    <div class="seg" id="segVat">
+      <button type="button" data-v="general" class="on">일반과세</button>
+      <button type="button" data-v="simple">간이과세</button>
+      <button type="button" data-v="exempt">면세</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>추가 사항</label>
+    <div class="checks">
+      <label><input type="checkbox" id="ckNew"> 당해연도 신규 개업</label>
+      <label><input type="checkbox" id="ckJoint"> 공동사업자 (+10%)</label>
+      <label><input type="checkbox" id="ckCredit"> 감면·세액공제 적용 예정 (조정료 +20%)</label>
+      <label><input type="checkbox" id="ckLabor"> 근로소득 합산 (신고대리)</label>
+      <label><input type="checkbox" id="ckRentS"> 주택임대 — 단순 (+55,000)</label>
+      <label><input type="checkbox" id="ckRentC"> 주택임대 — 2주택·간주임대료 (+110,000)</label>
+      <label><input type="checkbox" id="ckFin"> 금융소득 종합과세 (+220,000)</label>
+      <label><input type="checkbox" id="ckLate"> 기한후신고 (+30%)</label>
+    </div>
+  </div>
+
+  <button class="calcbtn" id="btnCalc">견적 산출하기</button>
+</div>
+
+<!-- ══════════ 결과 ══════════ -->
+<div class="stack">
+  <div class="verdict" id="verdict">
+    <div class="vtype">STEP 1 · 수임 유형 판정</div>
+    <div class="vmain" id="vMain"></div>
+    <div class="vlaw" id="vLaw"></div>
+  </div>
+
+  <div class="card rescard" id="cardGijang">
+    <h2>기장료 산출 <span style="font-weight:500;font-size:.74rem;color:var(--muted)">월액 · VAT 별도</span></h2>
+    <table class="fee" id="tblGijang"></table>
+    <div class="note" id="noteGijang"></div>
+  </div>
+
+  <div class="card rescard" id="cardJojeong">
+    <h2>조정료 (연 1회) <span style="font-weight:500;font-size:.74rem;color:var(--muted)">VAT 별도</span></h2>
+    <table class="fee" id="tblJojeong"></table>
+  </div>
+
+  <div class="card rescard" id="cardSingo">
+    <h2>신고대리 견적 <span style="font-weight:500;font-size:.74rem;color:var(--muted)">VAT 포함</span></h2>
+    <table class="fee" id="tblSingo"></table>
+    <div class="note" id="noteSingo"></div>
+  </div>
+
+  <div class="card rescard" id="cardCompare">
+    <h2>연간 비용 비교</h2>
+    <div class="compare">
+      <div class="cbox" id="boxSingo"><div class="ct">신고대리 코스</div><div class="cv" id="cvSingo">—</div><div class="cd" id="cdSingo"></div></div>
+      <div class="cbox" id="boxGijang"><div class="ct">기장 코스</div><div class="cv" id="cvGijang">—</div><div class="cd" id="cdGijang"></div></div>
+    </div>
+    <div class="note" id="noteCompare"></div>
+    <button class="copybtn" id="btnCopy">📋 견적 요약 복사 (카톡 안내용)</button>
+  </div>
+</div>
+</div>
+
+<footer>
+본 산출액은 최초 상담용 견적이며, 자료 검토 후 업무량·난이도에 따라 조정될 수 있습니다.<br>
+기장의무·경비율 판정: 소득세법 §160·§81의5, 시행령 §143·§208 (직전연도 수입금액 기준) · 보수표 갱신: 매년 7월 1일<br>
+원제우세무사 사무소 · 부천시 소향로 135, 3층 · taxmancall.com
+</footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   보수표 상수 — 여기 숫자만 수정하면 전체 반영됩니다
+   ═══════════════════════════════════════════════════════ */
+const CFG = {
+  // 법정 기준 (직전연도 수입금액, 원) — 소득세법 시행령 §208, §143
+  bokLimit:   { ga: 300e6,  na: 150e6,  da: 75e6  },   // 복식부기의무
+  seongsil:   { ga: 1500e6, na: 750e6,  da: 500e6 },   // 성실신고확인
+  gijunRate:  { ga: 60e6,   na: 36e6,   da: 24e6  },   // 기준경비율
+  smallBiz:   48e6,                                     // 무기장가산세 제외 소규모
+
+  // 기장료 기본표 (월, VAT별도) — [상한액, 요금] / 2024표 + 50,000 인상
+  gijangIndividual: [
+    [3e8,150000],[5e8,170000],[10e8,180000],[15e8,220000],[20e8,250000],
+    [25e8,300000],[30e8,325000],[35e8,350000],[40e8,375000],[45e8,400000],
+    [50e8,425000],[60e8,450000],[70e8,500000],[80e8,550000],[90e8,600000],
+    [100e8,650000],[200e8,950000]
+  ],
+  gijangCorp: [
+    [3e8,200000],[5e8,230000],[10e8,250000],[15e8,300000],[20e8,350000],
+    [25e8,400000],[30e8,425000],[35e8,450000],[40e8,475000],[45e8,500000],
+    [50e8,525000],[60e8,550000],[70e8,600000],[80e8,650000],[90e8,700000],
+    [100e8,750000],[200e8,1050000]
+  ],
+  // 인원 가산: 환산인원 = 4대×1.0 + 3.3%×0.3 + 일용×0.25
+  headWeights: { w4:1.0, w33:0.3, wday:0.25 },
+  headTiers: [ [0,0],[2,10000],[5,30000],[10,50000],[20,100000] ], // [환산인원 상한, 월가산] / 초과 시 별도협의
+  headOverFee: 150000,
+  // 업종 가산율 (기본료+인원가산에 적용)
+  industryMult: { none:1.0, mfg:1.2, med:1.5 },
+
+  // 조정료 (연1회, VAT별도) — [수입상한, 기본액, 초과기준액, 만분율]
+  jojeongIndividual: [
+    [0.5e8, 300000, 0, 0],[1e8, 300000, 0.5e8, 30],[3e8, 450000, 1e8, 15],
+    [5e8, 750000, 3e8, 13],[10e8, 1010000, 5e8, 10],[20e8, 1510000, 10e8, 9],
+    [30e8, 2410000, 20e8, 7],[40e8, 3110000, 30e8, 5],[50e8, 3610000, 40e8, 4],
+    [100e8, 4010000, 50e8, 3],[500e8, 5510000, 100e8, 1]
+  ],
+  jojeongCorp: [
+    [1e8, 400000, 0, 0],[3e8, 400000, 1e8, 19],[5e8, 780000, 3e8, 13],
+    [10e8, 1040000, 5e8, 11],[20e8, 1590000, 10e8, 9],[30e8, 2490000, 20e8, 7],
+    [40e8, 3190000, 30e8, 5],[50e8, 3690000, 40e8, 3.5],[100e8, 4040000, 50e8, 3],
+    [500e8, 5540000, 100e8, 1],[1000e8, 9540000, 500e8, 0.5]
+  ],
+
+  // 종소세 신고대리 (VAT 포함) — [수입상한, 요금]
+  singoA: [ // 추계형
+    [24e6, 110000],[48e6, 132000],[75e6, 165000],[150e6, 220000]
+  ],
+  singoA_lowNoLabor: 88000,      // 2,400만 미만 + 근로소득 없음
+  singoB: [ // 카드반영형 (간편장부)
+    [48e6, 220000],[75e6, 275000],[150e6, 330000],[300e6, 440000]
+  ],
+  singoC: [ // 복식부기형 (선택적)
+    [75e6, 440000],[150e6, 550000],[300e6, 660000]
+  ],
+  // 가산 (VAT 포함)
+  addLabor: 132000, addRentSimple: 55000, addRentComplex: 110000, addFinance: 220000,
+  jointRate: 0.10, lateRate: 0.30,
+  // 부가세 신고대리 (VAT 포함, 회당)
+  vatGeneral: 132000, vatGeneralCard: 165000, vatSimple: 99000, vatExempt: 110000,
+  VAT: 0.10
+};
+
+/* ═══════ 유틸 ═══════ */
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString('ko-KR');
+const won = n => fmt(n) + '원';
+function tierLookup(table, rev){
+  for (const [limit, fee] of table) if (rev < limit) return fee;
+  return table[table.length-1][1];
+}
+function segInit(id){
+  const seg = $(id);
+  seg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    seg.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  }));
+}
+segInit('segEntity'); segInit('segVat');
+const segVal = id => $(id).querySelector('button.on').dataset.v;
+
+$('inRevenue').addEventListener('input', e => {
+  const raw = e.target.value.replace(/[^\d]/g,'');
+  e.target.value = raw ? Number(raw).toLocaleString('ko-KR') : '';
+});
+
+/* ═══════ 판정 ═══════ */
+function judge(d){
+  const g = d.group;
+  if (d.entity === '법인')
+    return { cls:'v-must', type:'GIJANG', main:'기장 필수 — 법인', law:'법인은 전건 복식부기 기장 대상입니다. 신고대리 접수 불가.' };
+  if (d.revenue >= CFG.seongsil[g])
+    return { cls:'v-must', type:'GIJANG', main:'기장 필수 + 성실신고확인대상', law:`직전연도 수입 ${fmt(d.revenue)}원 ≥ 성실신고 기준. 복식부기 기장 + 성실신고확인 보수 별도 협의 대상입니다.` };
+  if (d.revenue >= CFG.bokLimit[g] && !d.isNew)
+    return { cls:'v-must', type:'GIJANG', main:'기장 필수 — 복식부기의무자', law:`직전연도 수입 ${fmt(d.revenue)}원 ≥ 복식부기 기준 ${fmt(CFG.bokLimit[g])}원 (소득세법 §160·시행령 §208). 추계신고 시 무기장가산세 20% + 기준경비율 적용으로 신고대리가 오히려 불리합니다.` };
+  if (d.w4 >= 1)
+    return { cls:'v-rule', type:'GIJANG', main:'기장 원칙 — 4대보험 직원 보유', law:'급여대장·원천세·간이지급명세서·4대보험 신고가 매월 발생하므로 기장 계약이 원칙입니다.' };
+  if (d.revenue >= CFG.gijunRate[g])
+    return { cls:'v-reco', type:'BOTH', main:'신고대리 가능 · 기장 권장', law:`수입 ${fmt(d.revenue)}원 ≥ 기준경비율 기준 ${fmt(CFG.gijunRate[g])}원 (시행령 §143). 추계 시 세부담이 커 장부작성이 유리한 구간입니다. 2년 연속 해당 시 기장 전환을 안내합니다.` };
+  return { cls:'v-free', type:'SINGO', main:'신고대리 적합', law: d.revenue < CFG.smallBiz
+    ? `수입 ${fmt(d.revenue)}원 < 4,800만원 소규모사업자 — 무기장가산세(§81의5) 제외 대상으로 추계형 신고대리가 최적입니다.`
+    : '단순경비율 구간으로 신고대리 진행이 가능합니다.' };
+}
+
+/* ═══════ 기장료 ═══════ */
+function calcGijang(d){
+  const base = tierLookup(d.entity==='법인' ? CFG.gijangCorp : CFG.gijangIndividual, d.revenue);
+  const eq = d.w4*CFG.headWeights.w4 + d.w33*CFG.headWeights.w33 + d.wday*CFG.headWeights.wday;
+  let headFee = null, headOver = false;
+  for (const [limit, fee] of CFG.headTiers) if (eq <= limit) { headFee = fee; break; }
+  if (headFee === null) { headFee = CFG.headOverFee; headOver = true; }
+  const mult = CFG.industryMult[d.industry];
+  const monthly = Math.round((base + headFee) * mult / 1000) * 1000;
+  return { base, eq, headFee, headOver, mult, monthly, vatIncl: monthly*(1+CFG.VAT) };
+}
+
+/* ═══════ 조정료 ═══════ */
+function calcJojeong(d){
+  let rev = d.revenue;
+  const lines = [];
+  if (d.industry === 'med'){ rev = rev*1.2; lines.push(['의료업 등 수입금액 20% 가산 적용','']); }
+  const table = d.entity==='법인' ? CFG.jojeongCorp : CFG.jojeongIndividual;
+  let fee = table[table.length-1][1];
+  for (const [limit, baseF, over, rate] of table){
+    if (rev < limit){ fee = baseF + (rev-over)*rate/10000; break; }
+  }
+  fee = Math.max(fee, table[0][1]);
+  let mults = [];
+  if (d.industry==='mfg'){ mults.push(['제조·건설 가산 +20%',0.2]); }
+  if (d.credit){ mults.push(['감면·세액공제 적용 가산 +20%',0.2]); }
+  if (d.joint){ mults.push(['공동사업자 가산 +10%',0.1]); }
+  let final = fee;
+  mults.forEach(m => final += fee*m[1]);
+  final = Math.round(final/1000)*1000;
+  return { baseFee: Math.round(fee/1000)*1000, mults, final, lines, vatIncl: final*(1+CFG.VAT) };
+}
+
+/* ═══════ 신고대리 ═══════ */
+function calcSingo(d, verdictType){
+  if (d.entity==='법인') return null;
+  const g = d.group;
+  // 유형 자동 추천
+  let plan, planName, fee;
+  if (d.revenue >= CFG.bokLimit[g] || d.revenue >= 300e6) return { blocked:true };
+  if (d.revenue >= 150e6){ plan='B'; }
+  else if (d.revenue >= CFG.gijunRate[g]){ plan='B'; }
+  else { plan='A'; }
+  if (plan==='A'){
+    planName='추계형 (경비율 신고)';
+    if (d.revenue < 24e6 && !d.labor) fee = CFG.singoA_lowNoLabor;
+    else fee = tierLookup(CFG.singoA, d.revenue);
+  } else {
+    planName='카드반영형 (간편장부 작성)';
+    fee = tierLookup(CFG.singoB, d.revenue);
+  }
+  const items = [[`종합소득세 — ${planName}`, fee]];
+  if (d.labor && !(plan==='A' && d.revenue<24e6)) items.push(['근로소득 합산', CFG.addLabor]);
+  if (d.rentS) items.push(['주택임대 (단순)', CFG.addRentSimple]);
+  if (d.rentC) items.push(['주택임대 (2주택·간주임대료)', CFG.addRentComplex]);
+  if (d.fin)  items.push(['금융소득 종합과세', CFG.addFinance]);
+  let subtotal = items.reduce((s,i)=>s+i[1],0);
+  const pctItems = [];
+  if (d.joint){ pctItems.push(['공동사업자 +10%', subtotal*CFG.jointRate]); }
+  if (d.late){ pctItems.push(['기한후신고 +30%', subtotal*CFG.lateRate]); }
+  let jongTotal = subtotal + pctItems.reduce((s,i)=>s+i[1],0);
+  jongTotal = Math.round(jongTotal/1000)*1000;
+  // 부가세
+  let vatFee=0, vatCount=0, vatLabel='';
+  if (d.vatType==='general'){ vatFee=CFG.vatGeneral; vatCount=2; vatLabel='부가세 신고대리 (일반·홈택스형) × 2회'; }
+  else if (d.vatType==='simple'){ vatFee=CFG.vatSimple; vatCount=1; vatLabel='부가세 신고대리 (간이) × 1회'; }
+  else { vatFee=CFG.vatExempt; vatCount=1; vatLabel='면세 사업장현황신고 × 1회'; }
+  const vatTotal = vatFee*vatCount;
+  return { plan, planName, items, pctItems, jongTotal, vatLabel, vatTotal, annual: jongTotal+vatTotal, blocked:false };
+}
+
+/* ═══════ 렌더 ═══════ */
+let lastSummary = '';
+$('btnCalc').addEventListener('click', () => {
+  const d = {
+    entity: segVal('segEntity'),
+    group: $('inGroup').value,
+    industry: $('inIndustry').value,
+    revenue: Number($('inRevenue').value.replace(/[^\d]/g,'')) || 0,
+    w4: Number($('inW4').value)||0, w33: Number($('inW33').value)||0, wday: Number($('inWday').value)||0,
+    vatType: segVal('segVat'),
+    isNew: $('ckNew').checked, joint: $('ckJoint').checked, credit: $('ckCredit').checked,
+    labor: $('ckLabor').checked, rentS: $('ckRentS').checked, rentC: $('ckRentC').checked,
+    fin: $('ckFin').checked, late: $('ckLate').checked
+  };
+  if (!d.revenue){ alert('수입금액을 입력해 주세요.'); return; }
+
+  const v = judge(d);
+  const vb = $('verdict');
+  vb.className = 'verdict show ' + v.cls;
+  $('vMain').textContent = v.main;
+  $('vLaw').textContent = v.law;
+
+  const gj = calcGijang(d);
+  const jj = calcJojeong(d);
+  const sg = calcSingo(d, v.type);
+
+  // 기장료 표
+  let h = `<tr><td>기본 기장료 <span class="tag">수입 ${fmt(d.revenue)}원 구간</span></td><td>${won(gj.base)}</td></tr>`;
+  h += `<tr><td>인원 가산 <span class="tag">환산 ${gj.eq.toFixed(2)}명</span></td><td>${gj.headOver?won(gj.headFee)+' (별도협의)':won(gj.headFee)}</td></tr>`;
+  h += `<tr class="sub"><td colspan="2">└ 4대 ${d.w4}명×1.0 + 3.3% ${d.w33}명×0.3 + 일용 ${d.wday}명×0.25</td></tr>`;
+  if (gj.mult>1) h += `<tr><td>업종 가산</td><td>× ${gj.mult}</td></tr>`;
+  h += `<tr class="sum"><td>월 기장료 (VAT 별도)</td><td>${won(gj.monthly)}</td></tr>`;
+  h += `<tr class="sub"><td>VAT 포함 월액</td><td>${won(gj.vatIncl)}</td></tr>`;
+  $('tblGijang').innerHTML = h;
+  $('noteGijang').innerHTML = '기장료에 부가세 신고(연 2~4회)·원천세 신고·4대보험 취득상실 포함. 매년 <b>7월 1일</b> 직전연도 수입금액·연평균 인원 기준으로 재산정됩니다.';
+  $('cardGijang').classList.add('show');
+
+  // 조정료 표
+  let j = '';
+  jj.lines.forEach(l => j += `<tr class="sub"><td colspan="2">※ ${l[0]}</td></tr>`);
+  j += `<tr><td>산출 조정료</td><td>${won(jj.baseFee)}</td></tr>`;
+  jj.mults.forEach(m => j += `<tr><td>${m[0]}</td><td>+${won(Math.round(jj.baseFee*m[1]/1000)*1000)}</td></tr>`);
+  j += `<tr class="sum"><td>조정료 (VAT 별도)</td><td>${won(jj.final)}</td></tr>`;
+  $('tblJojeong').innerHTML = j;
+  $('cardJojeong').classList.add('show');
+
+  // 신고대리
+  if (sg && !sg.blocked){
+    let s = '';
+    sg.items.forEach(i => s += `<tr><td>${i[0]}</td><td>${won(i[1])}</td></tr>`);
+    sg.pctItems.forEach(i => s += `<tr><td>${i[0]}</td><td>+${won(i[1])}</td></tr>`);
+    s += `<tr><td>${sg.vatLabel}</td><td>${won(sg.vatTotal)}</td></tr>`;
+    s += `<tr class="sum"><td>연간 신고대리 합계 (VAT 포함)</td><td>${won(sg.annual)}</td></tr>`;
+    $('tblSingo').innerHTML = s;
+    $('noteSingo').innerHTML = (v.type==='GIJANG')
+      ? '<b>※ 판정상 기장 대상 고객입니다.</b> 신고대리 금액은 참고용 비교 목적으로만 안내하세요.'
+      : (sg.plan==='B' ? '기준경비율 구간 — 추계 시 세부담 증가로 카드반영형(간편장부)으로 산출했습니다.' : '소급 장부작성 수반 시 +50% 가산.');
+    $('cardSingo').classList.add('show');
+  } else {
+    $('tblSingo').innerHTML = `<tr><td>복식부기의무자 / 수입 3억 이상</td><td>접수 불가</td></tr>`;
+    $('noteSingo').innerHTML = '<b>신고대리 접수 불가 구간입니다.</b> 기장 계약으로 안내하세요.';
+    $('cardSingo').classList.add('show');
+  }
+
+  // 연간 비교
+  const gjAnnual = (gj.monthly*12 + jj.final) * (1+CFG.VAT);
+  $('cvGijang').textContent = won(Math.round(gjAnnual/1000)*1000);
+  $('cdGijang').textContent = `월 ${won(gj.monthly)} × 12 + 조정료 ${won(jj.final)} (VAT 포함 환산)`;
+  const singoOk = sg && !sg.blocked;
+  $('cvSingo').textContent = singoOk ? won(sg.annual) : '접수 불가';
+  $('cdSingo').textContent = singoOk ? `종소세 ${won(sg.jongTotal)} + 부가세 ${won(sg.vatTotal)}` : '기장 전환 대상';
+  $('boxGijang').classList.toggle('pick', v.type==='GIJANG' || !singoOk);
+  $('boxSingo').classList.toggle('pick', v.type==='SINGO' && singoOk);
+  $('noteCompare').textContent = v.type==='BOTH'
+    ? '두 코스 모두 가능한 구간입니다. 연간 비용 차이와 절세효과(기장세액공제·경비 인정 범위)를 함께 안내하세요.'
+    : '';
+  $('cardCompare').classList.add('show');
+
+  // 복사용 요약
+  const today = new Date().toISOString().slice(0,10);
+  lastSummary =
+`[원제우세무사 사무소 견적 안내] ${today}
+■ 판정: ${v.main}
+■ 수입금액: ${fmt(d.revenue)}원 (${d.entity})
+■ 월 기장료: ${won(gj.monthly)} (VAT 별도) / 포함 ${won(gj.vatIncl)}
+  - 기본 ${won(gj.base)} + 인원가산 ${won(gj.headFee)} (환산 ${gj.eq.toFixed(2)}명)${gj.mult>1?` × 업종가산 ${gj.mult}`:''}
+■ 조정료(연1회): ${won(jj.final)} (VAT 별도)
+${singoOk?`■ 신고대리(연간): ${won(sg.annual)} (VAT 포함)
+  - 종소세 ${sg.planName} ${won(sg.jongTotal)} + ${sg.vatLabel} ${won(sg.vatTotal)}`:'■ 신고대리: 접수 불가 (기장 대상)'}
+※ 자료 검토 후 확정되며, 매년 7/1 재산정됩니다.
+문의 032-321-4521 · taxmancall.com`;
+});
+
+$('btnCopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(lastSummary); $('btnCopy').textContent='✅ 복사 완료'; }
+  catch(e){ prompt('아래 내용을 복사하세요', lastSummary); }
+  setTimeout(()=>$('btnCopy').textContent='📋 견적 요약 복사 (카톡 안내용)', 1800);
+});
+</script>
+</body>
+</html>
